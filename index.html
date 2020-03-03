@@ -1,0 +1,63 @@
+<html>
+
+<head lang="en">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <title>TFS REST API test</title>
+</head>
+<body>
+  <h1>TFS REST API test</h1>
+  <div>
+    <input id="pat" type="password" placeholder="TFS Personal Access Token"/><br/>
+    <input id="organization" type="text" placeholder="Organization"/><br/>
+    <button id="go" type="button" onclick="load_projects()">Load</button>
+  </div>
+  
+  <div>
+    <p>Projects:</p>
+    <ul id="projects">
+    </ul>
+    <div id="errors"></div>
+  </div>
+  <script>
+    function load_projects() {
+      let headers = buildHeaders();
+      let url = buildUrl();
+
+      fetch(url, {method: 'GET', headers: headers})
+        .then(function (response) {
+            return response.json().then(processProjects); 
+          })
+        .catch(displayError);
+    }
+
+    function buildHeaders() {
+      // Get Personal Access Token and use it to build our Authorization header
+      let pat = document.querySelector("#pat").value;
+      let authHeader = "Basic " + btoa(pat + ":" + pat);
+      return new Headers({'Authorization': authHeader});
+    }
+
+    function buildUrl() {
+      let organization = document.querySelector("#organization").value;
+      // https://docs.microsoft.com/en-us/rest/api/azure/devops/core/projects/list?view=azure-devops-rest-5.1
+      return `https://dev.azure.com/${organization}/_apis/projects?api-version=5.1`;
+    }
+
+    function displayError(err) {
+      document.querySelector("#errors").innerHTML = err;
+    }
+
+    function processProjects(data) {
+      if (data.count > 0) {
+        let ul = document.querySelector("#projects");
+        data.value.forEach(projectRef => {
+          let li = document.createElement("li");
+          li.innerText = projectRef.name;
+          ul.appendChild(li);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
